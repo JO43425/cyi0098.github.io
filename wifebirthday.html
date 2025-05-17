@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>현주의 마음을 읽는 10가지 이야기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #FFF0F5; /* LavenderBlush */
+        }
+        .quiz-container {
+            background-color: rgba(255, 255, 255, 0.92); /* 살짝 더 불투명한 흰색 배경 */
+            backdrop-filter: blur(8px); /* 배경 블러 효과 강화 */
+            transition: height 0.3s ease-in-out; /* 높이 변경 시 부드러운 전환 */
+        }
+        .question-card {
+            background: linear-gradient(135deg, #FFFAF0 0%, #FFF5EE 100%); /* FloralWhite to SeaShell */
+            border: 1px solid #FFDAB9; /* PeachPuff */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .option-wrapper { /* Added for better radio + label alignment */
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem; /* 12px */
+        }
+        input[type="radio"] { /* Custom radio button style */
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 22px; /* Slightly larger */
+            height: 22px; /* Slightly larger */
+            border: 2px solid #FFB6C1; /* LightPink */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            margin-right: 12px; /* Spacing between radio and label */
+            position: relative;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        input[type="radio"]:checked::before {
+            content: '';
+            display: block;
+            width: 12px; /* Inner circle */
+            height: 12px; /* Inner circle */
+            background-color: #FF69B4; /* HotPink */
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .option-label {
+            background-color: #FFFDE7; /* Lighter Yellow for options */
+            border: 1px solid #FFF59D; /* Softer Yellow border */
+            color: #5D4037; /* Brown text */
+            font-weight: 500;
+            padding: 0.875rem 1.25rem; /* py-3.5 px-5 for better touch target */
+            border-radius: 0.75rem; /* rounded-xl */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            flex-grow: 1; /* Allow label to take available space */
+            line-height: 1.6; /* Improved readability */
+        }
+        .option-label:hover {
+            background-color: #FFF9C4; /* Light Yellow on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        input[type="radio"]:checked + .option-label { /* Note: direct sibling selector might need adjustment if structure changes */
+            background-color: #FFECB3; /* Amber Lighten-4 */
+            border-color: #FFCA28; /* Amber */
+            box-shadow: 0 0 0 3px rgba(255, 202, 40, 0.3);
+            color: #4E342E; /* Darker brown for selected */
+        }
+        .submit-btn, .next-btn { /* Shared style for buttons */
+            background: linear-gradient(to right, #FFC0CB, #FFB6C1); /* Pink to LightPink */
+            color: #5D4037;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+            padding: 0.875rem 1.5rem; /* py-3.5 px-6 */
+            border-radius: 0.75rem; /* rounded-xl */
+            text-align: center;
+        }
+        .submit-btn:hover, .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .results-container {
+            background: linear-gradient(135deg, #FFF0F5 0%, #FFE4E1 100%); /* LavenderBlush to MistyRose */
+            border: 2px solid #FFB6C1; /* LightPink */
+        }
+        .heart-icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            margin-right: 0.25em;
+            vertical-align: -0.15em; /* Fine-tuned alignment */
+            fill: #FF69B4; /* HotPink */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 selection:bg-pink-300 selection:text-white">
+    <div class="quiz-container max-w-2xl w-full mx-auto p-6 sm:p-10 rounded-3xl shadow-2xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold text-pink-600 mb-3">
+                <svg class="heart-icon" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path></svg>
+                현주의 마음을 읽는 10가지 이야기
+            </h1>
+            <p class="text-xl text-gray-700">“용익이는 오늘도 현주의 마음을 알고 싶습니다.”</p>
+        </header>
+
+        <form id="bmti-quiz">
+            <div id="questions-area" class="space-y-8">
+                </div>
+
+            <div id="error-message" class="mt-6 text-red-600 text-center font-semibold hidden">
+                모든 질문에 답변해주세요! <svg class="heart-icon !fill-red-600" viewBox="0 0 20 20"><path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 14a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0-8.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
+            </div>
+
+            <button type="submit" id="submit-quiz-btn" class="submit-btn w-full mt-10 py-4 px-6 text-xl shadow-lg hidden">
+                결과 보기 <svg class="heart-icon !fill-current" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path></svg>
+            </button>
+        </form>
+
+        <div id="results-container" class="hidden mt-12 p-6 sm:p-10 rounded-3xl shadow-xl text-center">
+            <h2 id="result-type-title" class="text-3xl sm:text-4xl font-bold text-pink-700 mb-4"></h2>
+            <p id="result-type-description" class="text-lg text-gray-700 mb-8 leading-relaxed"></p>
+            
+            <h3 class="text-2xl sm:text-3xl font-semibold text-pink-600 mb-6">
+                <svg class="heart-icon" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                현주님을 위한 맞춤 선물 추천!
+            </h3>
+            <ul id="gift-list" class="list-none space-y-3 text-left text-lg text-gray-700 max-w-md mx-auto">
+                </ul>
+             <button id="restart-quiz-btn" class="next-btn w-full sm:w-auto mt-10 py-3 px-6 text-lg shadow-lg mx-auto">
+                <svg class="heart-icon !fill-current transform rotate-90" viewBox="0 0 20 20" style="vertical-align: -0.2em; margin-right:0.3em; transform: scaleX(-1) rotate(90deg);"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l4.293 4.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                테스트 다시하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questionsData = [
+            // ... (질문 데이터는 이전과 동일하게 유지) ...
+            {
+                id: 'q1',
+                text: "1. 어느 여유로운 아침, 용익이가 물었어요. “현주야, 오늘은 우리 둘 다 아무 일정이 없어. 아무 방해도 받지 않고 너 하고 싶은 거 뭐든지 할 수 있다면, 뭐 하고 싶어?”",
+                options: [
+                    { value: 'A', text: "A. 고요한 숲 속 산책하며 맑은 공기 마시기", type: 'practical', score: 0.5 },
+                    { value: 'B', text: "B. 커피 내리고 따뜻한 담요 속에서 책 읽기", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 재밌는 영화 몰아보며 과자랑 귤 까먹기", type: 'emotional', score: 1.0 },
+                    { value: 'D', text: "D. 멋부리고 나가서 도심 속 숨은 맛집 찾기", type: 'stylist', score: 1.0 }
+                ]
+            },
+            {
+                id: 'q2',
+                text: "2. 용익이는 현주를 위해 선물을 준비하고 싶었어요. “근데… 현주가 어떤 걸 좋아할까?” 그걸 모르는 용익에게, 현주는 살짝 힌트를 줬어요.",
+                options: [
+                    { value: 'A', text: "A. 실용적인 거, 매일 쓸 수 있는 거 좋아", type: 'practical', score: 1.0 },
+                    { value: 'B', text: "B. 새로운 경험! 평소엔 잘 못하는 거 해보고 싶어", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 감동적인 거. 나를 생각하며 골랐단 게 느껴졌으면 좋겠어", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 예쁘고 고급진 거, 보면 기분 좋아지는 거!", type: 'stylist', score: 1.5 }
+                ]
+            },
+            {
+                id: 'q3',
+                text: "3. ‘현주야, 요즘 너만을 위한 시간은 뭐야?’ 용익이 조심스럽게 물었어요.",
+                options: [
+                    { value: 'A', text: "A. 계획 정리하며 노트 쓰기", type: 'practical', score: 1.0 },
+                    { value: 'B', text: "B. 나만의 공간에서 그림 그리고 음악 듣기", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 친구랑 카페 가서 수다 떨기", type: 'emotional', score: 0.5 },
+                    { value: 'D', text: "D. 유튜브나 인스타 보면서 트렌드 챙기기", type: 'stylist', score: 1.5 }
+                ]
+            },
+            {
+                id: 'q4',
+                text: "4. 현주 생일날, 용익이가 마법의 룰렛을 돌렸어요. 딱 멈춘 순간, 어떤 선물이 나왔으면 제일 좋았을까?",
+                options: [
+                    { value: 'A', text: "A. 고급 스킨케어 세트", type: 'practical', score: 1.0 },
+                    { value: 'B', text: "B. 풀빌라나 호텔 1박 여행권", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 마음 담긴 편지와 핸드메이드 선물", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 니치 향수나 명품 미니백", type: 'stylist', score: 1.0 }
+                ]
+            },
+            {
+                id: 'q5',
+                text: "5. 현주는 타임머신을 탈 수 있게 되었어요. 단 하루! 어떤 여행지로 갈래?",
+                options: [
+                    { value: 'A', text: "A. 파리, 골목길 따라 걸으며 크로와상 먹기", type: 'practical', score: 1.5 },
+                    { value: 'B', text: "B. 제주 바닷가 앞에서 아무 것도 안 하고 있기", type: 'experiential', score: 1.5 },
+                    { value: 'C', text: "C. 도쿄 골목 여행하며 레트로 감성 느끼기", type: 'emotional', score: 1.0 },
+                    { value: 'D', text: "D. 뉴욕 5번가에서 쇼핑하며 런웨이 기분 내기", type: 'stylist', score: 2.0 }
+                ]
+            },
+            {
+                id: 'q6',
+                text: "6. 집콕 주말, 아무 약속 없는 날. 용익이가 물었어요. “이런 날엔 뭐 하는 게 제일 좋아?”",
+                options: [
+                    { value: 'A', text: "A. 따뜻한 물에 족욕하고 향초 켜기", type: 'practical', score: 1.0 },
+                    { value: 'B', text: "B. 자취 요리 도전! 나만의 요리 만들기", type: 'experiential', score: 1.5 },
+                    { value: 'C', text: "C. 오랜만에 다꾸나 그림 그리기", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 넷플릭스 + 배달음식 = 천국", type: 'stylist', score: 2.0 }
+                ]
+            },
+            {
+                id: 'q7',
+                text: "7. 용익이가 쑥스럽게 선물을 건넸어요. “내가 직접 만든 거야.” 현주는 어떤 반응을 보였을까?",
+                options: [
+                    { value: 'A', text: "A. 실용적이면 진짜 최고지!", type: 'practical', score: 2.0 },
+                    { value: 'B', text: "B. 와 이건 추억이 될 것 같아", type: 'experiential', score: 0.5 },
+                    { value: 'C', text: "C. 감동이야… 고맙다 정말", type: 'emotional', score: 1.0 },
+                    { value: 'D', text: "D. 이거 예쁜데? 디테일 신경 쓴 거지?", type: 'stylist', score: 1.5 }
+                ]
+            },
+            {
+                id: 'q8',
+                text: "8. “현주야, 여행 가자!” 용익이 갑자기 말했어요. 현주는 어떤 스타일의 여행을 떠날까?",
+                options: [
+                    { value: 'A', text: "A. 한적한 시골 마을 힐링 여행", type: 'practical', score: 1.5 },
+                    { value: 'B', text: "B. 체험 많은 쿠킹 클래스+팜 투어 여행", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 미술관과 전시회 중심의 감성 여행", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 스타일 살리는 패션+사진 여행", type: 'stylist', score: 2.0 }
+                ]
+            },
+            {
+                id: 'q9',
+                text: "9. 생일 촛불을 끄기 전, 현주가 속으로 말했어요. “올해는 꼭…”",
+                options: [
+                    { value: 'A', text: "A. 필요한 거 스스로 잘 챙기는 해가 되길", type: 'practical', score: 1.5 },
+                    { value: 'B', text: "B. 해보고 싶었던 걸 하나씩 실행해보자", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 마음이 따뜻한 사람이 되자", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 더 멋진 내가 되어보자", type: 'stylist', score: 2.0 }
+                ]
+            },
+            {
+                id: 'q10',
+                text: "10. 마지막 질문! 용익이가 묻습니다. “내가 너를 위한 하루를 만들어준다면, 어떤 하루였으면 좋겠어?”",
+                options: [
+                    { value: 'A', text: "A. 실속 챙긴 알찬 하루", type: 'practical', score: 1.5 },
+                    { value: 'B', text: "B. 평소 못 해본 체험 가득한 하루", type: 'experiential', score: 1.0 },
+                    { value: 'C', text: "C. 마음이 따뜻해지는 하루", type: 'emotional', score: 1.5 },
+                    { value: 'D', text: "D. 예쁘고 인스타 감성 넘치는 하루", type: 'stylist', score: 2.0 }
+                ]
+            }
+        ];
+        const typeInfo = { /* ... (타입 정보는 이전과 동일) ... */ 
+            practical: { 
+                name: "실용파 알뜰 현모양처", 
+                description: "유용성과 일상에서의 활용성을 중요하게 생각하는 당신! 현실적이고 실속을 중시하는 알뜰한 매력이 넘쳐요. 계획적이고 효율적인 것을 선호하며, 삶의 안정과 편안함에서 행복을 느끼는 타입이에요.",
+                gifts: [
+                    "고급 스킨케어 세트 (피부는 소중하니까!)",
+                    "전동 칫솔, 드라이기 등 프리미엄 생활 가전 (삶의 질 상승템!)",
+                    "명품 브랜드의 카드지갑 (매일 쓰는거니까 좋은걸로!)",
+                    "책상용 무드등 + 무소음 시계 (아늑한 나만의 공간)",
+                    "일정을 정리할 수 있는 스마트 플래너 (갓생 시작!)"
+                ] 
+            },
+            emotional: { 
+                name: "감성파 로맨틱 이야기꾼", 
+                description: "감정, 의미, 그리고 마음에서 우러나는 감동을 소중히 여기는 당신! 사람들과의 정서적 연결을 통해 깊은 유대감을 느끼고 싶어해요. 따뜻한 말 한마디, 작은 몸짓 하나에도 큰 의미를 부여하는 로맨티스트랍니다.",
+                gifts: [
+                    "직접 만든 포토북 + 진심 담은 손편지 (추억은 방울방울)",
+                    "맞춤 각인된 악세서리 (ex. 이름/기념일 새긴 목걸이)",
+                    "캔들 + 무드등 + 사운드스피커 (감성 풀충전 세트)",
+                    "그림책, 시집, 위로가 되는 에세이 (마음의 양식)",
+                    "따뜻한 메세지가 담긴 인형 or 오르골 (포근한 위로)"
+                ] 
+            },
+            experiential: { 
+                name: "경험파 자유로운 탐험가", 
+                description: "새로운 여행, 신나는 액티비티, 다채로운 체험을 통해 삶의 에너지를 얻는 당신! 반복되는 일상보다는 특별한 경험을 통해 세상을 배우고 느끼는 것을 좋아해요. 호기심 많고 도전적인 자유로운 영혼의 소유자!",
+                gifts: [
+                    "고급 호텔 1박 staycation (도심 속 힐링)",
+                    "요가 or 도예 클래스 수강권 (새로운 취미 발견!)",
+                    "고요한 글램핑 / 캠핑 패키지 (자연 속으로)",
+                    "미술관/전시회 연간 이용권 (문화생활 만끽)",
+                    "스카이다이빙, 승마, 서핑 같은 액티비티 체험권 (짜릿한 도전!)"
+                ] 
+            },
+            stylist: { 
+                name: "취향파 트렌디 스타일리스트", 
+                description: "자신만의 스타일을 중요하게 생각하는 당신! 패션, 디자인, 브랜드 등 미적인 가치를 통해 자신을 표현하는 것을 즐겨요. 남다른 안목으로 트렌드를 이끌고, 아름다운 것들 속에서 특별한 기쁨을 찾는 멋쟁이랍니다.",
+                gifts: [
+                    "디자이너 브랜드 향수 (나만의 시그니처 향)",
+                    "한정판 스니커즈 or 가방 (힙스터 인증템)",
+                    "패션 커스터마이징 아이템 (예: 맞춤 네임 태그)",
+                    "예술 감성 오브제 (아트 포스터, 인센스 홀더 등)",
+                    "고급 쥬얼리 or 트렌디한 이어커프 (반짝이는 포인트)"
+                ] 
+            }
+        };
+
+        const questionsArea = document.getElementById('questions-area');
+        const quizForm = document.getElementById('bmti-quiz');
+        const submitButton = document.getElementById('submit-quiz-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const resultTypeTitle = document.getElementById('result-type-title');
+        const resultTypeDescription = document.getElementById('result-type-description');
+        const giftList = document.getElementById('gift-list');
+        const errorMessage = document.getElementById('error-message');
+        const restartButton = document.getElementById('restart-quiz-btn');
+
+
+        let currentQuestionIndex = 0;
+        let questionElements = []; // 생성된 질문 카드 DOM 요소를 저장할 배열
+
+        // 질문 카드 DOM 요소 생성 함수
+        function createQuestionElements() {
+            questionsArea.innerHTML = ''; // 기존 질문들 초기화
+            questionElements = []; // 배열 초기화
+            questionsData.forEach((qData, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card p-6 rounded-2xl shadow-lg';
+                questionCard.style.display = 'none'; // 기본적으로 숨김
+
+                const questionText = document.createElement('p');
+                questionText.className = 'text-xl font-semibold text-gray-800 mb-6';
+                questionText.textContent = qData.text;
+                questionCard.appendChild(questionText);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'space-y-3'; // 옵션 간 간격 조정
+
+                qData.options.forEach(opt => {
+                    const optionWrapper = document.createElement('div'); // Radio + Label Wrapper
+                    optionWrapper.className = 'option-wrapper';
+
+                    const optionInput = document.createElement('input');
+                    optionInput.type = 'radio';
+                    optionInput.name = `q${index}`; // 각 질문별로 그룹화
+                    optionInput.value = opt.value;
+                    optionInput.id = `q${index}_${opt.value}`;
+                    
+                    optionInput.addEventListener('change', handleOptionChange);
+
+                    const optionLabel = document.createElement('label');
+                    optionLabel.htmlFor = `q${index}_${opt.value}`;
+                    optionLabel.textContent = opt.text;
+                    optionLabel.className = 'option-label';
+                    
+                    optionWrapper.appendChild(optionInput);
+                    optionWrapper.appendChild(optionLabel);
+                    optionsDiv.appendChild(optionWrapper);
+                });
+
+                questionCard.appendChild(optionsDiv);
+                questionsArea.appendChild(questionCard);
+                questionElements.push(questionCard);
+            });
+        }
+        
+        // 현재 질문 표시 함수
+        function displayCurrentQuestion() {
+            if (currentQuestionIndex < questionsData.length) {
+                questionElements.forEach((card, index) => {
+                    card.style.display = index === currentQuestionIndex ? 'block' : 'none';
+                });
+                if (questionElements[currentQuestionIndex]) {
+                     // 새 질문이 나타날 때 부드럽게 스크롤
+                    questionElements[currentQuestionIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                questionsArea.style.display = 'block';
+                submitButton.classList.add('hidden');
+                resultsContainer.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+            } else {
+                // 모든 질문에 답변 완료
+                questionsArea.style.display = 'none';
+                submitButton.classList.remove('hidden');
+                submitButton.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // 옵션 선택 처리 함수
+        function handleOptionChange() {
+            // 점수 계산은 제출 시 한 번에 하므로 여기서는 다음 질문으로 넘어가는 로직만 처리
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayCurrentQuestion();
+            }, 300); // 0.3초 후 다음 질문으로 (선택 피드백 시간)
+        }
+
+        // 퀴즈 제출 처리 함수
+        quizForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            let scores = { practical: 0, emotional: 0, experiential: 0, stylist: 0 };
+            let answeredAll = true;
+
+            questionsData.forEach((qData, index) => {
+                const selectedOptionInput = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selectedOptionInput) {
+                    const optionValue = selectedOptionInput.value;
+                    const chosenOptionData = qData.options.find(opt => opt.value === optionValue);
+                    if (chosenOptionData) {
+                        scores[chosenOptionData.type] += chosenOptionData.score;
+                    }
+                } else {
+                    answeredAll = false; // 이 경우는 사실상 발생하기 어려움 (단계별 진행)
+                }
+            });
+
+            if (!answeredAll) { // 만약을 위한 방어 코드
+                errorMessage.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                errorMessage.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            
+            errorMessage.classList.add('hidden');
+
+            let maxScore = -1;
+            let resultType = '';
+            const typeKeys = ['practical', 'experiential', 'emotional', 'stylist'];
+            
+            for (const type of typeKeys) {
+                if (scores[type] > maxScore) {
+                    maxScore = scores[type];
+                    resultType = type;
+                }
+            }
+            
+            const finalTypeInfo = typeInfo[resultType];
+            resultTypeTitle.innerHTML = `<svg class="heart-icon" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path></svg> 현주님은 <span class="text-pink-500">${finalTypeInfo.name}</span>시군요!`;
+            resultTypeDescription.textContent = finalTypeInfo.description;
+
+            giftList.innerHTML = '';
+            finalTypeInfo.gifts.forEach(gift => {
+                const listItem = document.createElement('li');
+                listItem.className = 'p-3 bg-white/80 rounded-lg shadow hover:shadow-md transition-shadow duration-200';
+                listItem.innerHTML = `<svg class="heart-icon !fill-pink-500" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> ${gift}`;
+                giftList.appendChild(listItem);
+            });
+
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            submitButton.classList.add('hidden'); // 결과가 나오면 제출 버튼 숨김
+        });
+
+        // 다시 시작 버튼 이벤트 리스너
+        restartButton.addEventListener('click', function() {
+            currentQuestionIndex = 0;
+            createQuestionElements(); // 질문 다시 생성
+            displayCurrentQuestion(); // 첫 번째 질문 표시
+            resultsContainer.classList.add('hidden'); // 결과 숨기기
+            quizForm.reset(); // 폼 선택 초기화
+            document.querySelector('.quiz-container').scrollIntoView({ behavior: 'smooth' }); // 페이지 상단으로
+        });
+
+
+        // 초기화 함수
+        function initializeQuiz() {
+            createQuestionElements();
+            displayCurrentQuestion();
+        }
+
+        // 퀴즈 시작
+        initializeQuiz();
+
+    </script>
+</body>
+</html>
