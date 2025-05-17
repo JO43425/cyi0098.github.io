@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연금복권 번호 추첨기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #e0f2fe; /* 이전보다 약간 더 밝은 하늘색 배경 */
+        }
+        .number-display {
+            width: 50px; /* 너비 조정 */
+            height: 70px; /* 높이 조정 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem; /* 폰트 크기 키움 */
+            font-weight: bold;
+            color: white;
+            border-radius: 8px; /* 약간 둥근 모서리 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease;
+            margin: 0 4px; /* 숫자 간 간격 */
+        }
+        .number-display:hover {
+            transform: translateY(-5px); /* 위로 살짝 이동 */
+        }
+        .group-display {
+            padding: 10px 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            background-color: #fb923c; /* 주황색 계열 */
+        }
+        .digit-color-0 { background-color: #f87171; } /* 빨간색 계열 */
+        .digit-color-1 { background-color: #fbbf24; } /* 주황색 계열 */
+        .digit-color-2 { background-color: #a3e635; } /* 라임색 계열 */
+        .digit-color-3 { background-color: #34d399; } /* 에메랄드색 계열 */
+        .digit-color-4 { background-color: #22d3ee; } /* 시안색 계열 */
+        .digit-color-5 { background-color: #60a5fa; } /* 파란색 계열 */
+        .digit-color-6 { background-color: #818cf8; } /* 인디고색 계열 */
+        .digit-color-7 { background-color: #c084fc; } /* 보라색 계열 */
+        .digit-color-8 { background-color: #f472b6; } /* 핑크색 계열 */
+        .digit-color-9 { background-color: #9ca3af; } /* 회색 계열 */
+
+        .gradient-button-pension {
+            background-image: linear-gradient(to right, #f59e0b, #ef4444); /* 주황-빨강 그라데이션 */
+            transition: all 0.3s ease;
+        }
+        .gradient-button-pension:hover {
+            background-image: linear-gradient(to right, #ef4444, #f59e0b);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+        #titleTextPension {
+            background: linear-gradient(to right, #10b981, #3b82f6); /* 초록-파랑 그라데이션 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg text-center"> {/* max-w-lg로 너비 증가 */}
+        <h1 id="titleTextPension" class="text-4xl font-bold mb-8">연금복권 번호 추첨기</h1>
+
+        <button id="generatePensionButton" class="gradient-button-pension text-white font-bold py-3 px-8 rounded-lg text-xl mb-8 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400">
+            연금번호 뽑기!
+        </button>
+
+        <div id="pensionResultArea" class="mb-6 min-h-[100px]">
+            <div class="mb-4">
+                <p class="text-xl font-semibold text-gray-700 mb-2">선택된 조</p>
+                <div id="groupResult" class="flex justify-center">
+                    </div>
+            </div>
+            <div>
+                <p class="text-xl font-semibold text-gray-700 mb-2">선택된 번호</p>
+                <div id="numberResult" class="flex flex-wrap justify-center gap-1">
+                    </div>
+            </div>
+        </div>
+
+        <p id="pensionMessageBox" class="mt-6 text-sm text-gray-600 min-h-[20px]"></p>
+    </div>
+
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+        <p>&copy; <span id="yearPension"></span> 연금복권 번호 생성기. 모든 권리 보유.</p>
+        <p class="mt-1">이 번호는 실제 당첨을 보장하지 않습니다.</p>
+    </footer>
+
+    <script>
+        const generatePensionButton = document.getElementById('generatePensionButton');
+        const groupResult = document.getElementById('groupResult');
+        const numberResult = document.getElementById('numberResult');
+        const pensionMessageBox = document.getElementById('pensionMessageBox');
+        const yearSpanPension = document.getElementById('yearPension');
+        yearSpanPension.textContent = new Date().getFullYear();
+
+        // 각 자리 숫자에 대한 색상 클래스를 반환하는 함수
+        function getDigitColorClass(digit) {
+            return `digit-color-${digit}`;
+        }
+
+        generatePensionButton.addEventListener('click', () => {
+            generatePensionNumbers();
+        });
+
+        function generatePensionNumbers() {
+            groupResult.innerHTML = '';
+            numberResult.innerHTML = '';
+            pensionMessageBox.textContent = '연금 번호를 생성 중입니다...';
+
+            setTimeout(() => {
+                // 1. 조 선택 (1 ~ 5)
+                const selectedGroup = Math.floor(Math.random() * 5) + 1;
+
+                const groupDisplay = document.createElement('div');
+                groupDisplay.classList.add('group-display');
+                groupDisplay.textContent = `${selectedGroup}조`;
+                groupResult.appendChild(groupDisplay);
+
+                // 2. 6자리 번호 선택 (0 ~ 9, 중복 가능)
+                const selectedNumbers = [];
+                for (let i = 0; i < 6; i++) {
+                    const digit = Math.floor(Math.random() * 10);
+                    selectedNumbers.push(digit);
+                }
+
+                selectedNumbers.forEach((digit, index) => {
+                    const digitDisplay = document.createElement('div');
+                    digitDisplay.classList.add('number-display', getDigitColorClass(digit));
+                    digitDisplay.textContent = digit;
+                    // 애니메이션을 위한 지연 추가
+                    setTimeout(() => {
+                        digitDisplay.style.transform = 'scale(1)'; // 기본 크기로 설정 (등장 애니메이션)
+                        numberResult.appendChild(digitDisplay);
+                    }, index * 150); // 각 숫자가 순차적으로 나타나도록 함
+                });
+
+                pensionMessageBox.textContent = '행운을 빌어요! 좋은 연금이 되길!';
+            }, 500); // 0.5초 지연
+        }
+
+        // 페이지 로드 시 초기 메시지
+        pensionMessageBox.textContent = '버튼을 눌러 연금 복권 번호를 받아보세요!';
+    </script>
+</body>
+</html>
+

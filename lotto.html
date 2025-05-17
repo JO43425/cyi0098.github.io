@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 추첨기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #f0f9ff; /* 연한 하늘색 배경 */
+        }
+        .lotto-ball {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease;
+        }
+        .lotto-ball:hover {
+            transform: scale(1.1);
+        }
+        .ball-color-1 { background-color: #facc15; } /* 노란색 */
+        .ball-color-2 { background-color: #22c55e; } /* 초록색 */
+        .ball-color-3 { background-color: #3b82f6; } /* 파란색 */
+        .ball-color-4 { background-color: #ef4444; } /* 빨간색 */
+        .ball-color-5 { background-color: #a855f7; } /* 보라색 */
+        .ball-color-6 { background-color: #6b7280; } /* 회색 */
+
+        .gradient-button {
+            background-image: linear-gradient(to right, #4ade80, #3b82f6);
+            transition: all 0.3s ease;
+        }
+        .gradient-button:hover {
+            background-image: linear-gradient(to right, #3b82f6, #4ade80);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        #titleText {
+            background: linear-gradient(to right, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
+        <h1 id="titleText" class="text-4xl font-bold mb-8">로또 번호 추첨기</h1>
+
+        <button id="generateButton" class="gradient-button text-white font-bold py-3 px-8 rounded-lg text-xl mb-8 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
+            행운번호 뽑기!
+        </button>
+
+        <div id="resultArea" class="flex flex-wrap justify-center gap-3 mb-6 min-h-[80px]">
+            </div>
+
+        <div id="bonusAreaContainer" class="mt-6 min-h-[80px]">
+             <p class="text-lg font-semibold text-gray-700 mb-2">추가 번호 (재미로!)</p>
+             <div id="bonusArea" class="flex justify-center gap-3">
+                </div>
+        </div>
+
+        <p id="messageBox" class="mt-6 text-sm text-gray-600 min-h-[20px]"></p>
+    </div>
+
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+        <p>&copy; <span id="year"></span> 로또 번호 생성기. 모든 권리 보유.</p>
+        <p class="mt-1">이 번호는 실제 로또 당첨을 보장하지 않습니다.</p>
+    </footer>
+
+    <script>
+        const generateButton = document.getElementById('generateButton');
+        const resultArea = document.getElementById('resultArea');
+        const bonusArea = document.getElementById('bonusArea');
+        const messageBox = document.getElementById('messageBox');
+        const yearSpan = document.getElementById('year');
+        yearSpan.textContent = new Date().getFullYear();
+
+        // 공 색상을 결정하는 함수
+        function getBallColorClass(number) {
+            if (number <= 10) return 'ball-color-1'; // 노란색
+            if (number <= 20) return 'ball-color-2'; // 초록색 (원래 파란색이었으나 초록색으로 변경하여 다른 번호대와 구분)
+            if (number <= 30) return 'ball-color-4'; // 빨간색 (원래 회색이었으나 빨간색으로 변경)
+            if (number <= 40) return 'ball-color-6'; // 회색 (원래 검은색이었으나 회색으로 변경)
+            return 'ball-color-5'; // 보라색 (나머지, 41~45)
+        }
+
+
+        generateButton.addEventListener('click', () => {
+            generateLottoNumbers();
+        });
+
+        function generateLottoNumbers() {
+            // 기존 번호 지우기
+            resultArea.innerHTML = '';
+            bonusArea.innerHTML = '';
+            messageBox.textContent = '번호를 생성 중입니다...';
+
+            // 애니메이션 효과를 위해 약간의 지연 후 번호 생성
+            setTimeout(() => {
+                const numbers = new Set();
+                // 1부터 45까지의 숫자 중에서 6개를 무작위로 선택
+                while (numbers.size < 6) {
+                    const randomNumber = Math.floor(Math.random() * 45) + 1;
+                    numbers.add(randomNumber);
+                }
+
+                const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
+
+                // 선택된 번호를 화면에 표시
+                sortedNumbers.forEach((number, index) => {
+                    const ball = document.createElement('div');
+                    ball.classList.add('lotto-ball', getBallColorClass(number));
+                    ball.textContent = number;
+                    // 애니메이션을 위한 지연 추가
+                    setTimeout(() => {
+                        ball.style.transform = 'scale(1)';
+                        resultArea.appendChild(ball);
+                    }, index * 200); // 각 공이 순차적으로 나타나도록 함
+                });
+
+                // 추가 번호 (보너스 번호와 유사한 개념으로 1개 더)
+                let bonusNumber;
+                do {
+                    bonusNumber = Math.floor(Math.random() * 45) + 1;
+                } while (numbers.has(bonusNumber)); // 기존 당첨 번호와 겹치지 않도록
+
+                const bonusBall = document.createElement('div');
+                bonusBall.classList.add('lotto-ball', getBallColorClass(bonusNumber));
+                bonusBall.textContent = bonusNumber;
+                setTimeout(() => {
+                    bonusBall.style.transform = 'scale(1)';
+                    bonusArea.appendChild(bonusBall);
+                }, sortedNumbers.length * 200);
+
+
+                messageBox.textContent = '행운을 빌어요!';
+            }, 500); // 0.5초 지연
+        }
+
+        // 페이지 로드 시 초기 메시지
+        messageBox.textContent = '버튼을 눌러 행운 번호를 받아보세요!';
+    </script>
+</body>
+</html>
